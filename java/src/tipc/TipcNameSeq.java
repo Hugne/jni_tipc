@@ -5,6 +5,12 @@ public class TipcNameSeq {
 	public int lower;
 	public int upper;
 	
+	public TipcNameSeq(int type, int lower, int upper)
+	{
+		this.type = type;
+		this.lower = lower;
+		this.upper = upper;
+	}
 	public String toString()
 	{
 		StringBuilder result = new StringBuilder();

@@ -34,6 +34,7 @@ public class TipcAddress extends SocketAddress {
 	
 	public String toString()
 	{
+		System.out.println(this.getClass().getName());
 		//TODO: print scope and domain aswell
 		switch(this.type) {
 		case TIPC_ADDR_ID:
