@@ -1,3 +1,4 @@
+package tipc;
 
 public class TipcPortId {
 	public int ref;

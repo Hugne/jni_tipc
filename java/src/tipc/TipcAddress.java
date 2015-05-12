@@ -1,5 +1,5 @@
+package tipc;
 import java.net.SocketAddress;
-
 
 public class TipcAddress extends SocketAddress {
 	static final short family = 30;	//AF_TIPC

@@ -1,3 +1,4 @@
+package tipc;
 
 public class TipcEvent {
 	public TipcEvent event;

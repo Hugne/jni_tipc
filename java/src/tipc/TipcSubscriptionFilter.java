@@ -1,3 +1,4 @@
+package tipc;
 
 public enum TipcSubscriptionFilter {
 	TIPC_SUB_PORTS(0x01),

@@ -1,3 +1,4 @@
+package tipc;
 public enum TipcAddressType
 {
 	TIPC_ADDR_NAMESEQ(1),

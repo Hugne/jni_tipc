@@ -1,3 +1,4 @@
+package tipc;
 
 public enum TipcResult {
 	TIPC_OK(0),

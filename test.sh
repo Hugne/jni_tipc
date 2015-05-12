@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -classpath java/bin -Djava.library.path=./jni_lib/ Test
+java -classpath java/bin -Djava.library.path=./jni_lib/ tipc.Test

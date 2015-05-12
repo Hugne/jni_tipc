@@ -1,3 +1,4 @@
+package tipc;
 
 public enum TipcEventId {
 	TIPC_PUBLISHED(1),

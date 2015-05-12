@@ -1,3 +1,4 @@
+package tipc;
 
 public class TipcSubscription {
 	public TipcNameSeq sequence;

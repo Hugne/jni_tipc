@@ -1,8 +1,9 @@
+package tipc;
 
-public class TipcNameSeq {
+public class TipcName {
+
 	public int type;
-	public int lower;
-	public int upper;
+	public int instance;
 	
 	public String toString()
 	{
@@ -10,9 +11,7 @@ public class TipcNameSeq {
 		result.append("{");
 		result.append(type);
 		result.append(", ");
-		result.append(lower);
-		result.append(", ");
-		result.append(upper);
+		result.append(instance);
 		result.append("}");
 		return result.toString();
 	}

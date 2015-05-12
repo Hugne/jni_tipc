@@ -1,6 +1,6 @@
+package tipc;
 import java.io.Closeable;
 import java.io.IOException;
-
 
 public class TipcDatagramSocket implements Closeable, AutoCloseable {
 	static {

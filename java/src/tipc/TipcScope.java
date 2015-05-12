@@ -1,3 +1,4 @@
+package tipc;
 
 public enum TipcScope {
 	TIPC_ZONE_SCOPE(1),
