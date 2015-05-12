@@ -1,0 +1,7 @@
+java/bin
+jni_lib/*.o
+*.so
+.metadata
+.classpath
+.project
+*.log
