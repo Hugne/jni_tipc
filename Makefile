@@ -1,3 +1,6 @@
+.PHONY: all 
+all:    lib java_src
+
 java_src:
 	find -name "*.java" > javasrc.txt
 	javac @javasrc.txt -d ./java/bin/
@@ -6,8 +9,7 @@ java_src:
 lib:
 	make -C jni_lib
 
-all: lib java_src
-
+.PHONY:
 clean:
 	rm -f ./java/bin/*.class
 	make -C jni_lib clean
