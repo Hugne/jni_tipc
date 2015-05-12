@@ -148,7 +148,17 @@ JNIEXPORT jint JNICALL
 Java_tipc_TipcDatagramSocket_jnisend(JNIEnv *env , jobject thisObj, jint fd,
 				     jbyteArray buf, jint len)
 {
-	printf("jnisend\n");
+	jboolean isCopy;
+	char *data;
+	/*TIPC dgram/rdm sockets can be 'connected' in the sense that
+	 * a previous call to connect() have associated a peer address
+	 * with the socket */
+	/*TODO: Something smarter that does not create buffer copies*/
+	data = (char*)(*env)->GetByteArrayElements(env, buf, &isCopy);
+	if (send(fd, data, len, 0) < 0)
+		perror("sendto");
+	if (isCopy)
+		(*env)->ReleaseByteArrayElements(env, buf, data, JNI_ABORT);
 	return 0;
 }
 
@@ -176,8 +186,18 @@ JNIEXPORT jint JNICALL
 Java_tipc_TipcDatagramSocket_jnirecv(JNIEnv *env, jobject thisObj, jint fd,
 				     jbyteArray buf, jint len)
 {
-	printf("jnirecv\n");
+	char *data;
+	jboolean isCopy;
+	int i;
 
+	/*TODO: Something smarter that does not create buffer copies*/
+	/*TODO2: Capture sender address*/
+	data = (*env)->GetByteArrayElements(env, buf, &isCopy);
+	if (recv(fd, data, len, 0) < 0)
+		perror("recvfrom");
+	(*env)->SetByteArrayRegion(env, buf, 0, len, data);
+	if (isCopy)
+		(*env)->ReleaseByteArrayElements(env, buf, data, JNI_ABORT);
 	return 0;
 }
 JNIEXPORT jint JNICALL
@@ -192,8 +212,7 @@ Java_tipc_TipcDatagramSocket_jnirecvfrom(JNIEnv *env, jobject thisObj, jint fd,
 
 	/*TODO: Something smarter that does not create buffer copies*/
 	data = (*env)->GetByteArrayElements(env, buf, &isCopy);
-
-	if ((i = recvfrom(fd, data, len, 0, (struct sockaddr*)&sa, &sa_len)) < 0)
+	if (recvfrom(fd, data, len, 0, (struct sockaddr*)&sa, &sa_len) < 0)
 		perror("recvfrom");
 	(*env)->SetByteArrayRegion(env, buf, 0, len, data);
 	if (isCopy)
