@@ -1,6 +1,8 @@
 package tipc;
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.nio.channels.NotYetConnectedException;
 
 public class TipcDatagramSocket implements Closeable, AutoCloseable {
 	static {
@@ -17,6 +19,10 @@ public class TipcDatagramSocket implements Closeable, AutoCloseable {
 	private native int jnirdmsocket();
 	private native int jnibind(int fd, TipcAddress addr);
 	private native int jniconnect(int fd, TipcAddress addr);
+	private native int jnisend(int fd, byte[] buf, int len);
+	private native int jnisendto(int fd, byte[] buf, int len, TipcAddress addr);
+	private native int jnirecv(int fd, byte[] buf, int len);
+	private native int jnirecvfrom(int fd, byte[] buf, int len, TipcAddress addr);
 	private native int jniclose(int fd);
 
 
@@ -41,5 +47,20 @@ public class TipcDatagramSocket implements Closeable, AutoCloseable {
 	{
 		this.jniconnect(fd, addr);
 	}
-
+	public void send(byte[] buf, int len)
+	{
+		this.jnisend(fd, buf, len);
+	}
+	public void sendto(byte[] buf, int len, TipcAddress addr)
+	{
+		this.jnisendto(fd, buf, len, addr);
+	}
+	public void recv(byte[] buf, int len)
+	{
+		this.jnirecv(fd, buf, len);
+	}
+	public void recvfrom(byte[] buf, int len, TipcAddress addr)
+	{
+		this.jnirecvfrom(fd, buf, len, addr);
+	}
 }

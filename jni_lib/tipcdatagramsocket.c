@@ -52,7 +52,6 @@ static int TipcAddressToSockaddr(JNIEnv *env, jobject addr,
 	sa->scope = (char) getIntFromSignature(env, obj, "value");
 	switch (sa->addrtype) {
 	case TIPC_ADDR_NAMESEQ:
-		printf("Nameseq\n");
 		obj = getObjFromSignature(env, addr, "nameseq",
 					  "Ltipc/TipcNameSeq;");
 		if (!obj)
@@ -62,7 +61,6 @@ static int TipcAddressToSockaddr(JNIEnv *env, jobject addr,
 		sa->addr.nameseq.upper = getIntFromSignature(env, obj, "upper");
 	break;
 	case TIPC_ADDR_NAME:
-		printf("Name\n");
 		sa->addr.name.domain = getIntFromSignature(env, addr, "domain");
 		obj = getObjFromSignature(env, addr, "name", "Ltipc/TipcName;");
 		if (!obj)
@@ -72,7 +70,6 @@ static int TipcAddressToSockaddr(JNIEnv *env, jobject addr,
 								  "instance");
 	break;
 	case TIPC_ADDR_ID:
-		printf("Id\n");
 		obj = getObjFromSignature(env, addr, "portid",
 						  "Ltipc/TipcPortId;");
 		if (!obj)
@@ -89,6 +86,13 @@ out_err:
 	fprintf(stderr, "Address error\n");
 	memset(sa, 0, sizeof(*sa));
 	return -1;
+}
+
+static int sockaddrToTipcAddress(JNIEnv *env, struct sockaddr_tipc *sa,
+				 jobject addr)
+{
+	printf("fixme\n");
+	return 0;
 }
 
 
@@ -137,6 +141,63 @@ Java_tipc_TipcDatagramSocket_jniconnect(JNIEnv *env, jobject thisObj, jint fd,
 	}
 	if (connect(fd, (struct sockaddr*) &sa, sizeof(sa)))
 		perror("connect");
+	return 0;
+}
+
+JNIEXPORT jint JNICALL
+Java_tipc_TipcDatagramSocket_jnisend(JNIEnv *env , jobject thisObj, jint fd,
+				     jbyteArray buf, jint len)
+{
+	printf("jnisend\n");
+	return 0;
+}
+
+JNIEXPORT jint JNICALL
+Java_tipc_TipcDatagramSocket_jnisendto(JNIEnv *env,jobject thisObj, jint fd,
+				       jbyteArray buf, jint len, jobject addr)
+{
+	struct sockaddr_tipc sa;
+	jboolean isCopy;
+	char *data;
+
+	if (TipcAddressToSockaddr(env, addr, &sa)) {
+		fprintf(stderr, "sendto: Address error\n");
+		return -1;
+	}
+	/*TODO: Something smarter that does not create buffer copies*/
+	data = (char*)(*env)->GetByteArrayElements(env, buf, &isCopy);
+	if (sendto(fd, data, len, 0, (struct sockaddr*) &sa, sizeof(sa)) < 0)
+		perror("sendto");
+	if (isCopy)
+		(*env)->ReleaseByteArrayElements(env, buf, data, JNI_ABORT);
+	return 0;
+}
+JNIEXPORT jint JNICALL
+Java_tipc_TipcDatagramSocket_jnirecv(JNIEnv *env, jobject thisObj, jint fd,
+				     jbyteArray buf, jint len)
+{
+	printf("jnirecv\n");
+
+	return 0;
+}
+JNIEXPORT jint JNICALL
+Java_tipc_TipcDatagramSocket_jnirecvfrom(JNIEnv *env, jobject thisObj, jint fd,
+					 jbyteArray buf, jint len, jobject addr)
+{
+	struct sockaddr_tipc sa;
+	socklen_t sa_len = sizeof(sa);
+	char *data;
+	jboolean isCopy;
+	int i;
+
+	/*TODO: Something smarter that does not create buffer copies*/
+	data = (*env)->GetByteArrayElements(env, buf, &isCopy);
+
+	if ((i = recvfrom(fd, data, len, 0, (struct sockaddr*)&sa, &sa_len)) < 0)
+		perror("recvfrom");
+	(*env)->SetByteArrayRegion(env, buf, 0, len, data);
+	if (isCopy)
+		(*env)->ReleaseByteArrayElements(env, buf, data, JNI_ABORT);
 	return 0;
 }
 
