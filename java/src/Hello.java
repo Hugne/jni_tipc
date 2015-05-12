@@ -1,3 +1,5 @@
+import java.io.IOException;
+
 
 
 public class Hello {
@@ -17,6 +19,12 @@ public class Hello {
 	public static void main(String[] args) {
 		new Hello().hello();
 		TipcDatagramSocket ds = new TipcDatagramSocket(true);
+		try {
+			ds.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 	

@@ -4,7 +4,8 @@
 #include <sys/socket.h>
 #include <linux/tipc.h>
 
-JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jnidgramsocket(JNIEnv *env, jobject thisObj)
+JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jnidgramsocket(JNIEnv *env,
+							      jobject thisObj)
 {
 	int fd = socket(AF_TIPC, SOCK_DGRAM, 0);
 
@@ -12,7 +13,8 @@ JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jnidgramsocket(JNIEnv *env, jobje
 		perror("socket");
 	return fd;
 }
-JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jnirdmsocket(JNIEnv *env, jobject thisObj)
+JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jnirdmsocket(JNIEnv *env,
+							    jobject thisObj)
 {
 	int fd = socket(AF_TIPC, SOCK_RDM, 0);
 
@@ -21,7 +23,23 @@ JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jnirdmsocket(JNIEnv *env, jobject
 	return fd;
 }
 
-JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jnibind(JNIEnv *env, jobject thisObj, jint fd) {
+JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jnibind(JNIEnv *env,
+						       jobject thisObj,
+						       jint fd, jobject addr) {
+//	if (bind(fd, 
 	printf("Hello World!\n");
+	return 0;
+}
+
+JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jniconnect(JNIEnv *env,
+							  jobject thisObj,
+							  jint fd, jobject addr)
+{
+	return 0;
+}
+
+JNIEXPORT jint JNICALL Java_TipcDatagramSocket_jniclose(JNIEnv *env,
+							jobject thisObj, jint fd)
+{
 	return 0;
 }

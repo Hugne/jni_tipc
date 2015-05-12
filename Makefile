@@ -1,4 +1,4 @@
-.PHONY: all 
+.PHONY: all
 all:    lib java_src
 
 java_src:
