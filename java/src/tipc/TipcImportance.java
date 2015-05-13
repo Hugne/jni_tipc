@@ -1,3 +1,4 @@
+package tipc;
 
 public enum TipcImportance {
 	TIPC_LOW_IMPORTANCE(0),
