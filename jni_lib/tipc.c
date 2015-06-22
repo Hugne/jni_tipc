@@ -3,12 +3,11 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/socket.h>
+#include <poll.h>
 #include <linux/tipc.h>
 
-#include "common.h"
-
 JNIEXPORT jint JNICALL
-Java_tipc_TipcDatagramSocket_jnidgramsocket(JNIEnv *env, jobject thisObj)
+Java_tipc_TipcJniServiceAdaptor_jnidgramsocket(JNIEnv *env, jobject thisObj)
 {
 	int fd = socket(AF_TIPC, SOCK_DGRAM, 0);
 
@@ -17,7 +16,7 @@ Java_tipc_TipcDatagramSocket_jnidgramsocket(JNIEnv *env, jobject thisObj)
 	return fd;
 }
 JNIEXPORT jint JNICALL
-Java_tipc_TipcDatagramSocket_jnirdmsocket(JNIEnv *env, jobject thisObj)
+Java_tipc_TipcJniServiceAdaptor_jnirdmsocket(JNIEnv *env, jobject thisObj)
 {
 	int fd = socket(AF_TIPC, SOCK_RDM, 0);
 
@@ -27,36 +26,45 @@ Java_tipc_TipcDatagramSocket_jnirdmsocket(JNIEnv *env, jobject thisObj)
 }
 
 JNIEXPORT jint JNICALL
-Java_tipc_TipcDatagramSocket_jnibind(JNIEnv *env, jobject thisObj, jint fd,
-				     jobject addr) {
-	struct sockaddr_tipc sa;
+Java_tipc_TipcJniServiceAdaptor_jnibind(JNIEnv *env, jobject thisObj, jint fd,
+				     jint addrtype, jint type, jint lower,
+				     jint upper, jint scope) {
+	struct sockaddr_tipc sa = {
+		.family = AF_TIPC,
+		.addrtype = TIPC_ADDR_NAMESEQ,
+		.scope = scope,
+		.addr.nameseq.type = type,
+		.addr.nameseq.lower = lower,
+		.addr.nameseq.upper = upper
+	};
 
-	if (TipcAddressToSockaddr(env, addr, &sa)) {
-		fprintf(stderr, "bind: Address error\n");
-		return -1;
-	}
-	if (bind(fd, (struct sockaddr*) &sa, sizeof(sa)))
+	if (bind(fd, (struct sockaddr*) &sa, sizeof(sa))) {
 		perror("bind");
-	return 0;
-}
-
-JNIEXPORT jint JNICALL
-Java_tipc_TipcDatagramSocket_jniconnect(JNIEnv *env, jobject thisObj, jint fd,
-					jobject addr)
-{
-	struct sockaddr_tipc sa;
-
-	if (TipcAddressToSockaddr(env, addr, &sa)) {
-		fprintf(stderr, "connect: Address error\n");
-		return -1;
+		return -errno;
 	}
-	if (connect(fd, (struct sockaddr*) &sa, sizeof(sa)))
-		perror("connect");
 	return 0;
 }
 
 JNIEXPORT jint JNICALL
-Java_tipc_TipcDatagramSocket_jnisend(JNIEnv *env , jobject thisObj, jint fd,
+Java_tipc_TipcJniServiceAdaptor_jniconnect(JNIEnv *env, jobject thisObj, jint fd,
+					jint type, jint instance)
+{
+	struct sockaddr_tipc sa = {
+		.family = AF_TIPC,
+		.addrtype = TIPC_ADDR_NAME,
+		.addr.name.name.type = type,
+		.addr.name.name.instance = instance
+	};
+
+	if (connect(fd, (struct sockaddr*) &sa, sizeof(sa))){
+		perror("connect");
+		return -errno;
+	}
+	return 0;
+}
+
+JNIEXPORT jint JNICALL
+Java_tipc_TipcJniServiceAdaptor_jnisend(JNIEnv *env , jobject thisObj, jint fd,
 				     jbyteArray buf, jint len)
 {
 	jboolean isCopy;
@@ -74,17 +82,21 @@ Java_tipc_TipcDatagramSocket_jnisend(JNIEnv *env , jobject thisObj, jint fd,
 }
 
 JNIEXPORT jint JNICALL
-Java_tipc_TipcDatagramSocket_jnisendto(JNIEnv *env,jobject thisObj, jint fd,
-				       jbyteArray buf, jint len, jobject addr)
+Java_tipc_TipcJniServiceAdaptor_jnisendto(JNIEnv *env,jobject thisObj, jint fd,
+				       jbyteArray buf, jint len, jint type,
+				       jint lower, jint upper)
 {
-	struct sockaddr_tipc sa;
+	struct sockaddr_tipc sa = {
+		.family = AF_TIPC,
+		.addrtype = TIPC_ADDR_NAMESEQ,
+		.scope = TIPC_ZONE_SCOPE,
+		.addr.nameseq.type = type,
+		.addr.nameseq.lower = lower,
+		.addr.nameseq.upper = upper
+	};
+
 	jboolean isCopy;
 	char *data;
-
-	if (TipcAddressToSockaddr(env, addr, &sa)) {
-		fprintf(stderr, "sendto: Address error\n");
-		return -1;
-	}
 	/*TODO: Something smarter that does not create buffer copies*/
 	data = (char*)(*env)->GetByteArrayElements(env, buf, &isCopy);
 	if (sendto(fd, data, len, 0, (struct sockaddr*) &sa, sizeof(sa)) < 0)
@@ -93,8 +105,9 @@ Java_tipc_TipcDatagramSocket_jnisendto(JNIEnv *env,jobject thisObj, jint fd,
 		(*env)->ReleaseByteArrayElements(env, buf, data, JNI_ABORT);
 	return 0;
 }
+
 JNIEXPORT jint JNICALL
-Java_tipc_TipcDatagramSocket_jnirecv(JNIEnv *env, jobject thisObj, jint fd,
+Java_tipc_TipcJniServiceAdaptor_jnirecv(JNIEnv *env, jobject thisObj, jint fd,
 				     jbyteArray buf, jint len)
 {
 	char *data;
@@ -105,15 +118,16 @@ Java_tipc_TipcDatagramSocket_jnirecv(JNIEnv *env, jobject thisObj, jint fd,
 	/*TODO2: Capture sender address*/
 	data = (*env)->GetByteArrayElements(env, buf, &isCopy);
 	if (recv(fd, data, len, 0) < 0)
-		perror("recvfrom");
+		perror("recv");
 	(*env)->SetByteArrayRegion(env, buf, 0, len, data);
 	if (isCopy)
 		(*env)->ReleaseByteArrayElements(env, buf, data, JNI_ABORT);
 	return 0;
 }
+/*
 JNIEXPORT jint JNICALL
-Java_tipc_TipcDatagramSocket_jnirecvfrom(JNIEnv *env, jobject thisObj, jint fd,
-					 jbyteArray buf, jint len, jobject addr)
+Java_tipc_TipcJniServiceAdaptor_jnirecvfrom(JNIEnv *env, jobject thisObj, jint fd,
+					 jbyteArray buf, jint len)
 {
 	struct sockaddr_tipc sa;
 	socklen_t sa_len = sizeof(sa);
@@ -121,7 +135,7 @@ Java_tipc_TipcDatagramSocket_jnirecvfrom(JNIEnv *env, jobject thisObj, jint fd,
 	jboolean isCopy;
 	int i;
 
-	/*TODO: Something smarter that does not create buffer copies*/
+	/*TODO: Something smarter that does not create buffer copies
 	data = (*env)->GetByteArrayElements(env, buf, &isCopy);
 	if (recvfrom(fd, data, len, 0, (struct sockaddr*)&sa, &sa_len) < 0)
 		perror("recvfrom");
@@ -129,10 +143,25 @@ Java_tipc_TipcDatagramSocket_jnirecvfrom(JNIEnv *env, jobject thisObj, jint fd,
 	if (isCopy)
 		(*env)->ReleaseByteArrayElements(env, buf, data, JNI_ABORT);
 	return 0;
-}
-
+} */
 JNIEXPORT jint JNICALL
-Java_tipc_TipcDatagramSocket_jniclose(JNIEnv *env, jobject thisObj, jint fd)
+Java_tipc_TipcJniServiceAdaptor_jnipoll(JNIEnv *env, jobject thisObj, jint fd,
+					jint events, jint timeout)
+{
+	struct pollfd pfd;
+	int res;
+
+	pfd.fd = fd;
+	pfd.events = events;
+	res = poll(&pfd, 1, timeout);
+	if (res > 0)
+		return pfd.revents;
+	else if (res < 0)
+		perror("poll");
+	return 0;
+}
+JNIEXPORT jint JNICALL
+Java_tipc_TipcJniServiceAdaptor_jniclose(JNIEnv *env, jobject thisObj, jint fd)
 {
 	if (close(fd))
 		perror("close");
