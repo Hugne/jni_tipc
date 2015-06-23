@@ -6,7 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public abstract class ServiceDiscoveryAgent implements Runnable {
+public abstract class ServiceDiscoveryAgent extends AbstractService implements Runnable {
 	
 	private Thread sthread; 
 	private int fd = 0;
@@ -49,6 +49,7 @@ public abstract class ServiceDiscoveryAgent implements Runnable {
 			System.out.println("An error occured while receiving data");				
 		}
 	}
+	
 	private ServiceEvent parseevent(byte[] b, int len)
 	{
 		ServiceEvent evt = null;

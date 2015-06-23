@@ -1,9 +1,5 @@
 package tipc;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 /*
  * Spawns a thread that waits for data on the socket, will invoke the
  * receive method with any received data.
@@ -11,17 +7,19 @@ import java.io.IOException;
 public abstract class AbstractAsynchronousService extends AbstractService implements Runnable {
 
 	private Thread sthread;
-	
+
+
 	public void run() {
 		while (true) {
 			if (TipcJniServiceAdaptor.poll(fd, TipcJniServiceAdaptor.POLLIN |
-										   TipcJniServiceAdaptor.POLLPRI, 200) > 0)
+										   TipcJniServiceAdaptor.POLLPRI, 0) > 0)
 					recv();
 
 			if (sthread.isInterrupted())
 				return;
 		}
 	}
+
 	
 	public void start() throws ServiceException {
 		if (fd == 0) {
@@ -53,6 +51,6 @@ public abstract class AbstractAsynchronousService extends AbstractService implem
 			System.out.println("An error occured while receiving data");				
 		}
 	}
-
+	public abstract void receive(byte[] buf, int len);
 	
 }
