@@ -32,7 +32,6 @@ public abstract class ServiceDiscoveryAgent extends AbstractService implements R
 			if (TipcJniServiceAdaptor.poll(fd, TipcJniServiceAdaptor.POLLIN |
 										   TipcJniServiceAdaptor.POLLPRI, 200) > 0)
 					recv();
-
 			if (sthread.isInterrupted())
 				return;
 		}
@@ -41,6 +40,7 @@ public abstract class ServiceDiscoveryAgent extends AbstractService implements R
 	private void recv() {
 		int len = 66000;
 		byte buf[] = new byte[len];
+		
 		len = TipcJniServiceAdaptor.recv(fd,  buf, len);
 		if (len >= 0) {
 			ServiceEvent e = parseevent(buf, len);
@@ -52,6 +52,23 @@ public abstract class ServiceDiscoveryAgent extends AbstractService implements R
 	
 	private ServiceEvent parseevent(byte[] b, int len)
 	{
+		/*
+		 * When an event is received, we only know that it was from a service ascii name that
+		 * hashed to the same value as the ascii name that we subscribed to. It may very well
+		 * be a completely different name that happened to hash to the same value.
+		 * This is a tricky problem to solve with the distributed topology info at hand.
+		 * One idea of how to solve this is that the server, in addition to the data socket
+		 * published at {979797, <srv name hash>, <srv name hash>} also binds to another socket
+		 * at {979798, <srv name hash>, <srv name hash>}, and responds to queries on this socket
+		 * with it's real name. When we receive a TIPC_PUBLISHED event we send a multicast
+		 * name query to that socket from the ServiceDiscoveryAgent. We will then get replies
+		 * from all existing services with names of the same hash, which are then parsed.
+		 * If we find a match, the service up event is generated. In order to trigger events
+		 * from TIPC_WITHDRAWN, information about which tipc portid that published
+		 * the name need to be cached here, and if we get a WITHDRAWN event, we try to find
+		 * the associated name subscription and generate a DOWN event for that. 
+		 */
+
 		ServiceEvent evt = null;
 		ByteArrayInputStream data = new ByteArrayInputStream(b);
 		DataInputStream s = new DataInputStream(data);

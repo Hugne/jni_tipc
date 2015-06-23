@@ -4,8 +4,7 @@ public class TipcJniServiceAdaptor {
 	public static final int TIPC_ADDR_NAME = 2;
 	public static final int TIPC_ADDR_NAMESEQ = 1;
 	
-	public static final int TIPC_ZONE_SCOPE = 1;
-	public static final int TIPC_WITHDRAW = -1;
+
 	
 	public static final int POLLIN = 0x001;
 	public static final int POLLPRI = 0x002;

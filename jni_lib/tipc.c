@@ -74,7 +74,6 @@ Java_tipc_TipcJniServiceAdaptor_jnisend(JNIEnv *env , jobject thisObj, jint fd,
 	data = (char*)(*env)->GetByteArrayElements(env, buf, &isCopy);
 	if (send(fd, data, len, 0) < 0)
 		perror("sendto");
-	print_sub("SUB:", (struct tipc_subscr*)data);
 	if (isCopy)
 		(*env)->ReleaseByteArrayElements(env, buf, data, JNI_ABORT);
 	return 0;

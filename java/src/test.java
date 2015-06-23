@@ -13,9 +13,7 @@ public class test {
 		TestService srv = new TestService();
 		System.out.println("Test:: Publish the service");
 		srv.publish("Banana");
-		srv.publish("Banana");
-		srv.publish("Banana");
-		
+		srv.publish(10000, 400, 900, srv.TIPC_ZONE_SCOPE);
 		srv.start();
 
 		Thread.sleep(1000);

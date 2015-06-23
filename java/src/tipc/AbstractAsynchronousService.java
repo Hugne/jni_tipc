@@ -20,7 +20,6 @@ public abstract class AbstractAsynchronousService extends AbstractService implem
 		}
 	}
 
-	
 	public void start() throws ServiceException {
 		if (fd == 0) {
 			throw new ServiceException("Failed to start service, socket is not open");

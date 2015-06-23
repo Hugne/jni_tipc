@@ -14,6 +14,11 @@ public abstract class AbstractService {
 	private ArrayList<String> pnames = new ArrayList<String>();
 	protected int fd = 0;
 	public static final int AUTOGEN_TYPE = 979797;
+	
+	public static final int TIPC_ZONE_SCOPE = 1;
+	public static final int TIPC_CLUSTER_SCOPE = 2;
+	public static final int TIPC_NODE_SCOPE = 3;
+	public static final int TIPC_WITHDRAW = -1;
 
 	public AbstractService()
 	{
@@ -33,8 +38,7 @@ public abstract class AbstractService {
 		}
 		int instance = name.hashCode();
 		//TODO .... this is not enough, but works for the simple development/testing case
-		if (TipcJniServiceAdaptor.bind(fd, AUTOGEN_TYPE, instance, instance,
-									   TipcJniServiceAdaptor.TIPC_ZONE_SCOPE) != 0)
+		if (TipcJniServiceAdaptor.bind(fd, AUTOGEN_TYPE, instance, instance, TIPC_ZONE_SCOPE) != 0)
 			throw new ServiceException("Could not publish service, failed to bind socket");
 		pnames.add(name);
 	}
@@ -42,8 +46,7 @@ public abstract class AbstractService {
 	public void withdraw(String name) throws ServiceException
 	{
 		int instance = name.hashCode();
-		if (TipcJniServiceAdaptor.bind(fd, AUTOGEN_TYPE, instance, instance,
-									   TipcJniServiceAdaptor.TIPC_WITHDRAW) != 0)
+		if (TipcJniServiceAdaptor.bind(fd, AUTOGEN_TYPE, instance, instance, TIPC_WITHDRAW) != 0)
 			throw new ServiceException("Could not publish service, failed to bind socket");
 		Iterator<String> i = pnames.iterator();
 		while (i.hasNext()) {
@@ -51,6 +54,16 @@ public abstract class AbstractService {
 				i.remove();
 			}
 		}
+	}
+	
+	public void publish(int type, int lower, int upper, int scope) throws ServiceException {
+		if (TipcJniServiceAdaptor.bind(fd, type, lower, upper, scope) != 0)
+			throw new ServiceException("Could not publish service, failed to bind socket");
+	}
+
+	public void withdraw(int type, int lower, int upper) throws ServiceException {
+		if (TipcJniServiceAdaptor.bind(fd, type, lower, upper, TIPC_WITHDRAW) != 0)
+			throw new ServiceException("Could not withdraw service, failed to bind socket");
 	}
 	public void terminate() {
 		TipcJniServiceAdaptor.close(fd);
