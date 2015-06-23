@@ -1,5 +1,9 @@
 package tipc;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
  * 
  * The basic service class, can be subclassed if you
@@ -9,12 +13,12 @@ package tipc;
 public abstract class AbstractService {
 
 	protected int fd = 0;
-	private static final int AUTOGEN_TYPE = 979797;
+	public static final int AUTOGEN_TYPE = 979797;
 	
 	
 	public void publish(String name) throws ServiceException {
 		if (fd == 0)
-			fd = TipcJniServiceAdaptor.socket();
+			fd = TipcJniServiceAdaptor.socket(TipcJniServiceAdaptor.SOCK_RDM);
 		if (fd == 0) 
 			throw new ServiceException("Could not publish service, failed to open socket");
 		int instance = name.hashCode();
@@ -33,10 +37,13 @@ public abstract class AbstractService {
 									   TipcJniServiceAdaptor.TIPC_WITHDRAW) != 0)
 			throw new ServiceException("Could not publish service, failed to bind socket");
 	}
+	public void terminate() {
+		TipcJniServiceAdaptor.close(fd);
+	}
 
 	public void send(byte[] buf, int len, String name) throws ServiceException {
 		if (fd == 0)
-			fd = TipcJniServiceAdaptor.socket();
+			fd = TipcJniServiceAdaptor.socket(TipcJniServiceAdaptor.SOCK_RDM);
 		if (fd == 0) 
 			throw new ServiceException("Could not send, failed to open socket");
 		int instance = name.hashCode();
@@ -44,6 +51,7 @@ public abstract class AbstractService {
 			throw new ServiceException("Send failed");
 	}
 	
+
 	public abstract void receive(byte[] buf, int len);
 	
 	

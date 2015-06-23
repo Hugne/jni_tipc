@@ -7,18 +7,9 @@
 #include <linux/tipc.h>
 
 JNIEXPORT jint JNICALL
-Java_tipc_TipcJniServiceAdaptor_jnidgramsocket(JNIEnv *env, jobject thisObj)
+Java_tipc_TipcJniServiceAdaptor_jnisocket(JNIEnv *env, jobject thisObj, jint socktype)
 {
-	int fd = socket(AF_TIPC, SOCK_DGRAM, 0);
-
-	if (fd < 0)
-		perror("socket");
-	return fd;
-}
-JNIEXPORT jint JNICALL
-Java_tipc_TipcJniServiceAdaptor_jnirdmsocket(JNIEnv *env, jobject thisObj)
-{
-	int fd = socket(AF_TIPC, SOCK_RDM, 0);
+	int fd = socket(AF_TIPC, socktype, 0);
 
 	if (fd < 0)
 		perror("socket");
@@ -55,12 +46,19 @@ Java_tipc_TipcJniServiceAdaptor_jniconnect(JNIEnv *env, jobject thisObj, jint fd
 		.addr.name.name.type = type,
 		.addr.name.name.instance = instance
 	};
-
+	fprintf(stderr, "Connect to type %d instance %d\n", type, instance);
 	if (connect(fd, (struct sockaddr*) &sa, sizeof(sa))){
 		perror("connect");
 		return -errno;
 	}
 	return 0;
+}
+static void print_sub(const char *str, struct tipc_subscr *s)
+{
+       fprintf(stderr, "%s {%u,%u,%u}, timeout %u, user ref: %u\n",
+               str, ntohl(s->seq.type), ntohl(s->seq.lower),
+               ntohl(s->seq.upper), ntohl(s->timeout),
+               (unsigned int)s->usr_handle[0]);
 }
 
 JNIEXPORT jint JNICALL
@@ -76,6 +74,7 @@ Java_tipc_TipcJniServiceAdaptor_jnisend(JNIEnv *env , jobject thisObj, jint fd,
 	data = (char*)(*env)->GetByteArrayElements(env, buf, &isCopy);
 	if (send(fd, data, len, 0) < 0)
 		perror("sendto");
+	print_sub("SUB:", (struct tipc_subscr*)data);
 	if (isCopy)
 		(*env)->ReleaseByteArrayElements(env, buf, data, JNI_ABORT);
 	return 0;

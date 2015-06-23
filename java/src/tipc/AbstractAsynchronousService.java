@@ -1,4 +1,9 @@
 package tipc;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /*
  * Spawns a thread that waits for data on the socket, will invoke the
  * receive method with any received data.
@@ -34,6 +39,7 @@ public abstract class AbstractAsynchronousService extends AbstractService implem
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		this.terminate();
 	}
 	
 	private void recv() {

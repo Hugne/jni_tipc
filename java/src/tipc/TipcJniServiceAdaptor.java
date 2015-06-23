@@ -10,6 +10,10 @@ public class TipcJniServiceAdaptor {
 	public static final int POLLIN = 0x001;
 	public static final int POLLPRI = 0x002;
 	
+	
+	public static final int SOCK_RDM = 4;
+	public static final int SOCK_SEQPACKET = 5;
+	
 	static {
 		try {
 			System.loadLibrary("jnitipc");
@@ -18,8 +22,7 @@ public class TipcJniServiceAdaptor {
 		}
 		System.out.println("JNI lib loaded\n");
 	}
-	private static native int jnidgramsocket();
-	private static native int jnirdmsocket();
+	private static native int jnisocket(int socktype);
 	private static native int jnibind(int fd, int addrtype, int type, int lower, int upper, int scope);
 	private static native int jniconnect(int fd, int type, int instance);
 	private static native int jnisend(int fd, byte[] buf, int len);
@@ -28,13 +31,18 @@ public class TipcJniServiceAdaptor {
 	private static native int jnipoll(int fd, int events, int timeout);
 	private static native int jniclose(int fd);
 	
-	static int socket() {
-		return jnirdmsocket();
+	static int socket(int type) {
+		return jnisocket(type);
 	}
 	
 	static int bind(int fd, int type, int lower, int upper, int scope)
 	{
 		return jnibind(fd, TIPC_ADDR_NAMESEQ, type, lower, upper, scope);
+	}
+	
+	static int connect(int fd, int type, int instance)
+	{
+		return jniconnect(fd, type, instance);
 	}
 	
 	static int recv(int fd, byte[] buf, int len)
@@ -46,9 +54,17 @@ public class TipcJniServiceAdaptor {
 	{
 		return jnipoll(fd, events, timeout);
 	}
+
+	static int send(int fd, byte[] buf, int len) {
+			return jnisend(fd, buf, len);
+	}
 	
 	static int sendto(int fd, byte[] buf, int len, int type, int lower, int upper)
 	{
 		return jnisendto(fd, buf, len, type, lower, upper);
+	}
+	static int close(int fd) {
+		return jniclose(fd);
+		
 	}
 }
